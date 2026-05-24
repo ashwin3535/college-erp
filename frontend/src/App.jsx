@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import * as XLSX from 'xlsx';
 
 // LIVE BACKEND URL ADD KIYA HAI
-const API_BASE_URL = 'https://college-erp-backend.onrender.com';
+const API_BASE_URL = 'https://college-erp-backend-ashwin.onrender.com';
 
 function App() {
   const [user, setUser] = useState(null);
