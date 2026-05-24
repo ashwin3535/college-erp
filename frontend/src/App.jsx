@@ -3,6 +3,9 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import * as XLSX from 'xlsx';
 
+// LIVE BACKEND URL ADD KIYA HAI
+const API_BASE_URL = 'https://college-erp-backend.onrender.com';
+
 function App() {
   const [user, setUser] = useState(null);
   const [loginData, setLoginData] = useState({ username: '', password: '', role: 'STUDENT' });
@@ -49,12 +52,12 @@ function App() {
   const fetchData = async () => {
     if (!user) return;
     try {
-      const studentRes = await axios.get(`http://localhost:5000/get-students?role=${user.role}&username=${user.username}`);
+      const studentRes = await axios.get(`${API_BASE_URL}/get-students?role=${user.role}&username=${user.username}`);
       setStudents(studentRes.data);
-      const filesRes = await axios.get('http://localhost:5000/get-files');
+      const filesRes = await axios.get(`${API_BASE_URL}/get-files`);
       setUploadedFiles(filesRes.data);
       if (user.role === 'ADMIN') {
-        const facultyRes = await axios.get('http://localhost:5000/get-faculties');
+        const facultyRes = await axios.get(`${API_BASE_URL}/get-faculties`);
         setFaculties(facultyRes.data);
       }
     } catch (err) { console.error("Fetch error:", err); }
@@ -65,7 +68,7 @@ function App() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/login', loginData);
+      const res = await axios.post(`${API_BASE_URL}/login`, loginData);
       if (res.data.success) {
         localStorage.setItem('nri_token', res.data.token); // Save JWT Token
         setUser(res.data.user);
@@ -83,7 +86,7 @@ function App() {
     e.preventDefault();
     if (!newPassword) return alert("Please enter a new password!");
     try {
-      await axios.put(`http://localhost:5000/update-user/${user._id}`, { password: newPassword });
+      await axios.put(`${API_BASE_URL}/update-user/${user._id}`, { password: newPassword });
       alert("Secure Password Updated! Please login again.");
       handleLogout();
     } catch (err) { alert("Error updating password."); }
@@ -102,9 +105,9 @@ function App() {
     e.preventDefault();
     try {
       if (isEditingFaculty) {
-        await axios.put(`http://localhost:5000/update-user/${editFacultyId}`, facultyForm);
+        await axios.put(`${API_BASE_URL}/update-user/${editFacultyId}`, facultyForm);
         setIsEditingFaculty(false); setEditFacultyId(null);
-      } else { await axios.post('http://localhost:5000/add-faculty', facultyForm); }
+      } else { await axios.post(`${API_BASE_URL}/add-faculty`, facultyForm); }
       setFacultyForm({ username: '', password: '', department: '' }); fetchData(); 
     } catch (err) { alert(err.response?.data?.error || "Error saving faculty"); }
   };
@@ -115,9 +118,9 @@ function App() {
     e.preventDefault();
     try {
       if (isEditingStudent) {
-        await axios.put(`http://localhost:5000/update-user/${editStudentId}`, studentForm);
+        await axios.put(`${API_BASE_URL}/update-user/${editStudentId}`, studentForm);
         setIsEditingStudent(false); setEditStudentId(null);
-      } else { await axios.post('http://localhost:5000/add-student', studentForm); }
+      } else { await axios.post(`${API_BASE_URL}/add-student`, studentForm); }
       setStudentForm({ name: '', rollNumber: '', course: '', email: '', mobile: '', password: '' }); fetchData();
     } catch (err) { alert(err.response?.data?.error || "Error!"); }
   };
@@ -130,13 +133,13 @@ function App() {
     const formData = new FormData();
     formData.append('file', fileData); formData.append('category', fileCategory); formData.append('uploadedBy', user.name);
     try {
-      await axios.post('http://localhost:5000/upload-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await axios.post(`${API_BASE_URL}/upload-file`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setFileData(null); document.getElementById('fileInput').value = ""; fetchData(); alert("File Uploaded Successfully!");
     } catch (err) { alert("Error uploading file"); }
   };
 
-  const deleteFile = async (id) => { if(confirm("Delete this file permanently?")) { await axios.delete(`http://localhost:5000/delete-file/${id}`); fetchData(); } };
-  const deleteRecord = async (id) => { if(confirm("Delete this user record?")) { await axios.delete(`http://localhost:5000/delete-user/${id}`); fetchData(); } };
+  const deleteFile = async (id) => { if(confirm("Delete this file permanently?")) { await axios.delete(`${API_BASE_URL}/delete-file/${id}`); fetchData(); } };
+  const deleteRecord = async (id) => { if(confirm("Delete this user record?")) { await axios.delete(`${API_BASE_URL}/delete-user/${id}`); fetchData(); } };
 
   const filteredFaculties = faculties.filter(f => f.username.toLowerCase().includes(searchFaculty.toLowerCase()) || (f.department && f.department.toLowerCase().includes(searchFaculty.toLowerCase())));
   const filteredStudents = students.filter(s => s.name.toLowerCase().includes(searchStudent.toLowerCase()) || s.rollNumber.toLowerCase().includes(searchStudent.toLowerCase()) || s.course.toLowerCase().includes(searchStudent.toLowerCase()));
@@ -260,7 +263,7 @@ function App() {
                       <td style={{...tableCell, fontWeight: '700', color: theme.buttonBlue}}>{file.category}</td><td style={tableCell}>{file.originalName}</td><td style={tableCell}>{file.uploadedBy}</td>
                       <td style={{...tableCell, fontStyle: 'italic', color: theme.textSecondary, fontSize: '13px'}}>{file.uploadDate ? new Date(file.uploadDate).toLocaleString('en-IN') : '-'}</td>
                       <td style={tableCell}>
-                        <a href={`http://localhost:5000/uploads/${file.filename}`} target="_blank" rel="noopener noreferrer" className="lift-btn" style={{ background: theme.buttonBlue, textDecoration: 'none', fontSize: '13px', display: 'inline-block', marginRight: '8px' }}>View</a>
+                        <a href={`${API_BASE_URL}/uploads/${file.filename}`} target="_blank" rel="noopener noreferrer" className="lift-btn" style={{ background: theme.buttonBlue, textDecoration: 'none', fontSize: '13px', display: 'inline-block', marginRight: '8px' }}>View</a>
                         {(user.role === 'ADMIN' || user.role === 'FACULTY') && <button onClick={() => deleteFile(file._id)} className="lift-btn" style={{ background: theme.buttonRed, padding: '7px 12px', fontSize: '13px' }}>Delete</button>}
                       </td>
                     </tr>
