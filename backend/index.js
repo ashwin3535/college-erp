@@ -10,7 +10,14 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+// --- PRODUCTION CORS CONFIGURATION ---
+// Isse aapka Frontend Render se backend ko easily connect kar payega
+app.use(cors({
+    origin: ["https://college-erp-frontend-spn5.onrender.com", "http://localhost:5173", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
 
 const JWT_SECRET = process.env.JWT_SECRET || "nri_super_secret_key_2026";
 
@@ -209,4 +216,6 @@ app.delete('/delete-file/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.listen(5000, () => console.log("🚀 Server is running on port 5000"));
+// --- DYNAMIC PORT FOR RENDER ---
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
